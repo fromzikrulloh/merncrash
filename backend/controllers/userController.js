@@ -11,8 +11,7 @@ const registerUser = async_handler(async (req, res) => {
     // Check exist fields
     const {name, email, password} = req.body
     console.log(password)
-    if(!name || !email || !password)
-    {
+    if (!name || !email || !password) {
         res.status(400)
         throw new Error('Please enter all fields')
     }
@@ -20,21 +19,26 @@ const registerUser = async_handler(async (req, res) => {
     // Check user exist
     const userExists = await User.findOne({email})
 
-    if(userExists){
+    if (userExists) {
         res.status(400)
         throw new Error('This user is already exist')
     }
 
     // Hash password
     const salt = await bcrypt.genSalt(10)
-    const  hashPassword = await bcrypt.hash(password.toString(), salt)
+    const hashPassword = await bcrypt.hash(password.toString(), salt)
 
     // Create user
     const user = await User.create({name, email, password: hashPassword})
 
-    if(user){
-        res.status(201).json({_id: user.id, name: user.name, email: user.email})
-    }else {
+    if (user) {
+        res.status(201).json({
+            _id: user.id,
+            name: user.name,
+            email: user.email,
+            token: gemerateToken(user.id)
+        })
+    } else {
         res.status(400)
         throw new Error('Invalid user data')
     }
@@ -48,9 +52,14 @@ const loginUser = async_handler(async (req, res) => {
     // Check user email
     const user = await User.findOne({email})
 
-    if (user && (await bcrypt.compare(password, user.password))){
-        res.status(200).json({_id: user.id, name: user.name, email: user.email})
-    }else {
+    if (user && (await bcrypt.compare(password, user.password))) {
+        res.status(200).json({
+            _id: user.id,
+            name: user.name,
+            email: user.email,
+            token: gemerateToken(user.id)
+        })
+    } else {
         res.status(400)
         throw new Error('Invalid user data')
     }
@@ -64,10 +73,20 @@ const loginUser = async_handler(async (req, res) => {
 // @route   GET api/users/me
 // @access  Public
 const getMe = async_handler(async (req, res) => {
+    const {_id, name, email} = await User.findById(req.user.id)
+
     res.json({
-        message: 'This is me',
+        id: _id,
+        name,
+        email
     })
 })
+
+const gemerateToken = id => {
+    return jwt.sign({id}, process.env.JWT_SECRET, {
+        expiresIn: '10d'
+    })
+}
 
 module.exports = {
     registerUser,
