@@ -1,4 +1,4 @@
-const asyncHandler =require('express-async-handler')
+const asyncHandler = require('express-async-handler')
 
 const Goal = require('../models/goalModel')
 
@@ -31,7 +31,7 @@ const setGoals = asyncHandler(async (req, res) => {
 const putGoals = asyncHandler(async (req, res) => {
     const goal = await Goal.findById(req.params.id)
 
-    if (!goal){
+    if (!goal) {
         res.status(400)
         throw new Error('Goal does not exist')
     }
@@ -47,7 +47,7 @@ const putGoals = asyncHandler(async (req, res) => {
 const deleteGoals = asyncHandler(async (req, res) => {
     const goal = await Goal.findById(req.params.id)
 
-    if (!goal){
+    if (!goal) {
         res.status(400)
         throw new Error('Goal does not exist')
     }
